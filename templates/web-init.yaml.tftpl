@@ -1,0 +1,48 @@
+#cloud-config
+write_files:
+  - path: /opt/app/app.py
+    content: |
+      from flask import Flask, request, redirect
+      import pymysql
+
+      app = Flask(__name__)
+      def db():
+          return pymysql.connect(host="${db_host}", user="app",
+                                 password="${db_password}", database="board")
+
+      @app.route("/", methods=["GET", "POST"])
+      def index():
+          conn = db()
+          with conn.cursor() as c:
+              c.execute("CREATE TABLE IF NOT EXISTS posts (id INT AUTO_INCREMENT PRIMARY KEY, body TEXT)")
+              if request.method == "POST":
+                  c.execute("INSERT INTO posts (body) VALUES (%s)", (request.form["body"],))
+                  conn.commit()
+                  return redirect("/")
+              c.execute("SELECT id, body FROM posts ORDER BY id DESC")
+              rows = c.fetchall()
+          return ("<h1>Board</h1><form method=post><input name=body><button>글쓰기</button></form>"
+                  + "".join(f"<p>{i}. {b}</p>" for i, b in rows))
+
+      app.run(host="0.0.0.0", port=80)
+  - path: /etc/systemd/system/board.service
+    content: |
+      [Unit]
+      Description=Board Flask app
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      ExecStart=/usr/bin/python3 /opt/app/app.py
+      Restart=always
+      User=root
+
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - DEBIAN_FRONTEND=noninteractive apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip mysql-client
+  - pip3 install flask pymysql
+  - systemctl daemon-reload
+  - systemctl enable --now board
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y prometheus-node-exporter

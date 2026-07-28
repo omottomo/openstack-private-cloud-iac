@@ -1,0 +1,64 @@
+#cloud-config
+write_files:
+  - path: /opt/monitoring/clouds.yaml
+    content: |
+      clouds:
+        devstack:
+          auth:
+            auth_url: ${auth_url}
+            username: prometheus-exporter
+            password: ${exporter_password}
+            project_name: admin
+            user_domain_name: Default
+            project_domain_name: Default
+  - path: /opt/monitoring/prometheus.yml
+    content: |
+      global:
+        scrape_interval: 15s
+      scrape_configs:
+        - job_name: prometheus
+          static_configs:
+            - targets: ["localhost:9090"]
+        - job_name: node
+          static_configs:
+            - targets: ["${web_ip}:9100", "${db_ip}:9100"]
+        - job_name: openstack
+          scrape_interval: 60s
+          static_configs:
+            - targets: ["openstack-exporter:9180"]
+  - path: /opt/monitoring/grafana-datasource.yml
+    content: |
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus:9090
+          isDefault: true
+  - path: /opt/monitoring/docker-compose.yml
+    content: |
+      services:
+        prometheus:
+          image: prom/prometheus:v2.53.0
+          ports: ["9090:9090"]
+          volumes:
+            - /opt/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+          restart: always
+        grafana:
+          image: grafana/grafana:11.1.0
+          ports: ["3000:3000"]
+          environment:
+            - GF_SECURITY_ADMIN_PASSWORD=${grafana_admin_password}
+          volumes:
+            - /opt/monitoring/grafana-datasource.yml:/etc/grafana/provisioning/datasources/prometheus.yml:ro
+          restart: always
+        openstack-exporter:
+          image: ghcr.io/openstack-exporter/openstack-exporter:1.7.0
+          command: ["--os-client-config=/etc/openstack/clouds.yaml", "devstack"]
+          volumes:
+            - /opt/monitoring/clouds.yaml:/etc/openstack/clouds.yaml:ro
+          restart: always
+runcmd:
+  - DEBIAN_FRONTEND=noninteractive apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io docker-compose-v2
+  - systemctl enable --now docker
+  - docker compose -f /opt/monitoring/docker-compose.yml up -d

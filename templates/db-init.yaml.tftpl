@@ -1,0 +1,13 @@
+#cloud-config
+runcmd:
+  - for i in $(seq 1 60); do [ -b /dev/vdb ] && break; sleep 5; done
+  - blkid /dev/vdb || mkfs.ext4 /dev/vdb
+  - mkdir -p /var/lib/mysql
+  - mount /dev/vdb /var/lib/mysql
+  - echo '/dev/vdb /var/lib/mysql ext4 defaults,nofail 0 2' >> /etc/fstab
+  - DEBIAN_FRONTEND=noninteractive apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server
+  - sed -i 's/^bind-address.*/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+  - systemctl restart mysql
+  - mysql -e "CREATE DATABASE IF NOT EXISTS board; CREATE USER IF NOT EXISTS 'app'@'%' IDENTIFIED BY '${db_password}'; GRANT ALL ON board.* TO 'app'@'%';"
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y prometheus-node-exporter

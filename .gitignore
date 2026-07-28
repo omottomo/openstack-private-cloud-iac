@@ -1,0 +1,17 @@
+terraform.tfstate
+terraform.tfstate.*
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+crash.*.log
+
+terraform.tfvars
+*.auto.tfvars
+
+*.bak
+*~
+
+clouds.yaml
+*.pem
+*.key
