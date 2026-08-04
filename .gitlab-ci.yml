@@ -1,0 +1,37 @@
+stages:
+  - lint
+  - validate
+  - security
+
+fmt:
+  stage: lint
+  image:
+    name: hashicorp/terraform:1.9
+    entrypoint: [""]
+  script:
+    - terraform fmt -check -recursive -diff
+
+tflint:
+  stage: lint
+  image:
+    name: ghcr.io/terraform-linters/tflint:latest
+    entrypoint: [""]
+  script:
+    - tflint --recursive
+
+validate:
+  stage: validate
+  image:
+    name: hashicorp/terraform:1.9
+    entrypoint: [""]
+  script:
+    - terraform init -backend=false
+    - terraform validate
+
+security_scan:
+  stage: security
+  image:
+    name: aquasec/tfsec:latest
+    entrypoint: [""]
+  script:
+    - tfsec . --soft-fail
