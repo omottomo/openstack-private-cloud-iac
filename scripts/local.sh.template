@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# stack.sh가 설치 마지막에 자동 실행하는 훅.
+#
+# 왜 필요한가: DevStack은 PUBLIC_NETWORK_GATEWAY로 지정한 IP를 br-ex에 **직접 부여**한다.
+# 이 구성처럼 실제 공유기 IP를 지정하면 호스트가 게이트웨이를 사칭하게 되어
+# 설치 후 호스트의 인터넷 아웃바운드가 전면 차단된다.
+# LAN 내부 통신은 멀쩡해서 알아채기가 매우 어렵다 (docs/troubleshooting.md #5).
+#
+# 그 주소만 br-ex에서 떼어낸다. VM의 Floating IP 동작에는 영향이 없다.
+#
+# 01-install-devstack.sh가 렌더한 결과이며 devstack/local.sh로 배치된다.
+sudo ip addr del ${PUBLIC_NETWORK_GATEWAY}/${LAN_PREFIXLEN} dev br-ex 2>/dev/null || true

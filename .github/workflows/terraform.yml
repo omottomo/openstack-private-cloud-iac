@@ -1,0 +1,62 @@
+name: terraform
+
+# 원래는 로컬 GitLab CE + docker-executor 러너에서 돌던 파이프라인이다.
+# 저장소를 GitHub로 옮기면서 같은 잡 4개를 Actions로 이전했다.
+# apply는 의도적으로 넣지 않는다 — DevStack 호스트는 사내망(집 LAN) 안에 있고
+# CI 러너가 도달할 수 없으며, 자격증명을 CI에 두고 싶지도 않다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  TF_VERSION: "1.9.8"
+
+jobs:
+  fmt:
+    name: terraform fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - run: terraform fmt -check -recursive -diff
+
+  tflint:
+    name: tflint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+      - run: tflint --init
+        working-directory: terraform
+      - run: tflint --recursive
+        working-directory: terraform
+
+  validate:
+    name: terraform validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      # -backend=false: state 백엔드 없이 문법·타입만 검사 (자격증명 불필요)
+      - run: terraform init -backend=false
+        working-directory: terraform
+      - run: terraform validate
+        working-directory: terraform
+
+  security_scan:
+    name: tfsec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # --soft-fail: 단일 노드 실습 구성이라 지적 대부분이 "환경상 수용"에 해당한다.
+      # 파이프라인을 막지 않고 결과만 남긴다.
+      - uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: terraform
+          soft_fail: true

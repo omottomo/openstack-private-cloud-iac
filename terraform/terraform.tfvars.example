@@ -1,0 +1,23 @@
+# terraform.tfvars 예시.
+# `../scripts/02-bootstrap.sh`가 이 파일과 같은 내용을 자동 생성한다.
+# 손으로 채울 일은 스크립트를 쓰지 않을 때뿐이다.
+#
+# 실제 terraform.tfvars는 .gitignore로 커밋이 차단되어 있다 (비밀번호 평문).
+
+# --- 필수: 기본값 없음 ---
+image_local_path = "/opt/stack/jammy-server-cloudimg-amd64.img" # 미리 받아둔 Ubuntu 22.04 클라우드 이미지 경로
+os_auth_url      = "http://192.168.0.67/identity"               # Keystone 인증 URL — clouds.yaml의 auth_url과 같은 값
+
+db_password            = "change-me" # MySQL app 계정 비밀번호
+grafana_admin_password = "change-me" # Grafana admin 로그인 비밀번호
+exporter_password      = "change-me" # openstack-exporter가 쓸 Keystone 계정 비밀번호
+
+# --- 선택: 아래는 전부 기본값이 있다. 환경이 다를 때만 덮어쓴다 ---
+# lan_cidr        = "192.168.0.0/24"    # SG에서 SSH/HTTP를 허용할 LAN 대역 (호스트가 속한 대역)
+# public_key_path = "~/.ssh/id_rsa.pub" # 키페어에 등록할 공개키
+# internal_cidr   = "10.0.10.0/24"      # VM 내부 네트워크 대역
+# db_fixed_ip     = "10.0.10.10"        # db-vm 고정 내부 IP
+# flavor_name     = "m1.small"          # VM 사양 (RAM 2GB)
+# image_name      = "ubuntu-22.04"      # Glance 이미지 이름
+# exporter_role   = "reader"            # exporter 계정에 부여할 롤
+# dns_nameservers = ["8.8.8.8"]         # VM이 사용할 DNS
