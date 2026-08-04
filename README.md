@@ -22,7 +22,7 @@ README 템플릿 — 채우는 방법
 
 ## 아키텍처
 
-![아키텍처](docs/architecture.svg)
+![아키텍처](docs/architecture-diagram.svg)
 
 <!-- 그림 아래 2~3줄. 그림이 말하지 않는 것만 적는다.
      예: 물리 서버 1대(16GB RAM) 위의 all-in-one 구성. 집 LAN을 OpenStack의 외부 네트워크로
