@@ -1,7 +1,0 @@
-image_local_path = "<값을 채우세요>"
-db_password = "<값을 채우세요>"
-grafana_admin_password = "<값을 채우세요>"
-exporter_role = "<값을 채우세요>"
-exporter_password = "<값을 채우세요>"
-os_auth_url = "<값을 채우세요>"
-

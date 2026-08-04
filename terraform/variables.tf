@@ -11,8 +11,9 @@ variable "flavor_name" {
 }
 
 variable "image_name" {
-  type    = string
-  default = "ubuntu-22.04"
+  type        = string
+  description = "Glance에 등록할 이미지 이름"
+  default     = "ubuntu-22.04"
 }
 
 variable "image_local_path" {
@@ -33,8 +34,9 @@ variable "lan_cidr" {
 }
 
 variable "dns_nameservers" {
-  type    = list(string)
-  default = ["8.8.8.8"]
+  type        = list(string)
+  description = "내부 서브넷 VM이 사용할 DNS 서버 (없으면 apt 설치가 실패한다)"
+  default     = ["8.8.8.8"]
 }
 
 variable "db_fixed_ip" {
